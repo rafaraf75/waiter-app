@@ -11,7 +11,8 @@ Pozwala kelnerowi:
 - synchronizować zmiany z serwerem API (JSON-server + Redux Thunk).
 
 Projekt jest podsumowaniem modułów z Reacta, Reduxa i React Routera.
-
+---
+## Demo: https://waiter-app-6mvo.onrender.com
 ---
 
 ## 🧰 Technologie
