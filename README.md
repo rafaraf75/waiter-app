@@ -1,70 +1,172 @@
-# Getting Started with Create React App
+# Waiter App 🍕 – panel kelnera
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Aplikacja React służąca do zarządzania stolikami w pizzerii.
+Pozwala kelnerowi:
 
-## Available Scripts
+- zobaczyć listę wszystkich stolików i ich status,
+- przejść na stronę szczegółów wybranego stolika,
+- zmieniać status stolika,
+- ustawiać liczbę gości oraz maksymalną liczbę miejsc,
+- ustawiać kwotę rachunku (dla stolików w trakcie obsługi),
+- synchronizować zmiany z serwerem API (JSON-server + Redux Thunk).
 
-In the project directory, you can run:
+Projekt jest podsumowaniem modułów z Reacta, Reduxa i React Routera.
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 🧰 Technologie
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **React** (Create React App)
+- **React Router v6**
+- **Redux** + **React-Redux**
+- **Redux Thunk**
+- **React Bootstrap** + **Bootstrap**
+- **JSON-server** – prosty backend / API
+- **npm-run-all** – uruchamianie wielu skryptów równolegle
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🗂 Struktura aplikacji
 
-### `npm run build`
+Główne elementy:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- `/` – lista wszystkich stolików
+  Wyświetla:
+  - `Table X`
+  - `Status: ...`
+  - przycisk **Show more** do przejścia na stronę szczegółów.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- `/table/:id` – szczegóły wybranego stolika
+  Formularz pozwala na edycję:
+  - **Status**: `Free`, `Reserved`, `Busy`, `Cleaning`
+  - **People** – ilość osób aktualnie przy stoliku
+  - **Max people amount** – maksymalna liczba miejsc
+  - **Bill** – widoczny tylko gdy status = `Busy`
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Dodatkowo:
 
-### `npm run eject`
+- **Header** – nawigacja z logo `Waiter.app` i linkiem `Home`
+- **Footer** – prosty copyright na dole strony
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 🧠 Logika biznesowa
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Zgodnie z założeniami zadania:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+1. Użytkownik może edytować: `status`, `peopleAmount`, `maxPeopleAmount`, `bill`.
+2. Statusy: `Free`, `Reserved`, `Busy`, `Cleaning`.
+3. Pole **Bill**:
+   - widoczne tylko, gdy status = `Busy`,
+   - startuje od `0`,
+   - można je edytować.
+4. Gdy status = `Free` lub `Cleaning`:
+   - `peopleAmount` automatycznie resetuje się do `0`,
+   - `bill` również resetuje się do `0`.
+5. Walidacja osób:
+   - `peopleAmount` i `maxPeopleAmount` są w przedziale `0–10`,
+   - `peopleAmount` nie może być większe niż `maxPeopleAmount`,
+   - jeśli użytkownik zmieni `maxPeopleAmount` na wartość < `peopleAmount`,
+     to `peopleAmount` automatycznie zostaje obcięte do nowej wartości `maxPeopleAmount`.
+6. Zmiana danych następuje **dopiero po kliknięciu** przycisku `Update`:
+   - najpierw wysyłany jest request do API (PATCH),
+   - po sukcesie aktualizowany jest stan w Reduxie.
+7. Po udanym zapisie użytkownik jest przekierowywany na stronę główną (`/`).
+8. Jeśli `id` stolika w adresie jest niepoprawne (brak takiego stolika):
+   - następuje przekierowanie na `/`.
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 🌐 API i konfiguracja
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Adres API jest konfigurowany w pliku:
 
-### Code Splitting
+```js
+// src/config.js
+export const API_URL =
+  process.env.NODE_ENV === 'production'
+    ? '/api'
+    : 'http://localhost:3131/api';
+w trybie development (yarn start) – aplikacja korzysta z http://localhost:3131/api,
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+w trybie production (yarn build + node server.mjs) – API_URL ma wartość /api
+(frontend i backend działają na jednym serwerze).
 
-### Analyzing the Bundle Size
+Backend oparty jest na JSON-server i pliku z danymi:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+json
+Skopiuj kod
+// public/db/app.json
+{
+  "tables": [
+    {
+      "id": "1",
+      "status": "Free",
+      "peopleAmount": 0,
+      "maxPeopleAmount": 4,
+      "bill": 0
+    }
+    // ...
+  ]
+}
+🚀 Uruchamianie projektu
+1. Instalacja zależności
+bash
+Skopiuj kod
+yarn
+(albo npm install, jeśli ktoś woli npm).
 
-### Making a Progressive Web App
+2. Tryb developerski (zalecany do pracy lokalnej)
+Aplikacja React + JSON-server uruchamiane równolegle:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+bash
+Skopiuj kod
+yarn start
+React: http://localhost:3000
 
-### Advanced Configuration
+API (JSON-server): http://localhost:3131/api/tables
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+W tym trybie aplikacja korzysta z API_URL = http://localhost:3131/api.
 
-### Deployment
+3. Tryb produkcyjny (build + jeden serwer)
+Najpierw zbuduj aplikację:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+bash
+Skopiuj kod
+yarn build
+Następnie uruchom serwer produkcyjny:
 
-### `npm run build` fails to minify
+bash
+Skopiuj kod
+node server.mjs
+Serwer:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+serwuje build Reacta z folderu build,
+
+udostępnia API na podstawie build/db/app.json pod adresem /api.
+
+Domyślny port: 3131
+
+aplikacja: http://localhost:3131/
+
+API: http://localhost:3131/api/tables
+
+🧪 Skrypty z package.json (najważniejsze)
+yarn start – tryb dev (React + JSON-server równolegle)
+
+yarn build – budowanie wersji produkcyjnej
+
+node server.mjs – uruchomienie serwera produkcyjnego (build + API)
+
+☁️ Publikacja
+Projekt jest przygotowany tak, aby można go było:
+
+uruchomić lokalnie w trybie production (node server.mjs),
+
+łatwo przenieść na platformę typu Replit:
+
+import repozytorium z GitHub,
+
+ustawienie komendy startowej na node server.mjs,
+
+backend (json-server) i frontend (React build) obsługiwane przez jeden serwer.
