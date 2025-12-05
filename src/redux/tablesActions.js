@@ -1,3 +1,5 @@
+import { API_URL } from '../config';
+
 // typy akcji – te same stringi co w reducerze
 const FETCH_TABLES_START = 'app/tables/FETCH_START';
 const FETCH_TABLES_SUCCESS = 'app/tables/FETCH_SUCCESS';
@@ -33,7 +35,7 @@ export const fetchTables = () => {
   return (dispatch) => {
     dispatch(fetchTablesStart());
 
-    fetch('http://localhost:3131/api/tables')
+    fetch(`${API_URL}/tables`)
       .then((res) => {
         if (!res.ok) throw new Error('Network error');
         return res.json();
@@ -56,7 +58,7 @@ export const updateTableRequest = (table) => {
       body: JSON.stringify(table),
     };
 
-    fetch(`http://localhost:3131/api/tables/${table.id}`, options)
+    fetch(`${API_URL}/tables/${table.id}`, options)
       .then((res) => {
         if (!res.ok) throw new Error('Network error');
         return res.json();
