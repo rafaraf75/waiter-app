@@ -1,10 +1,11 @@
 // src/pages/TableDetails.js
-import { useParams, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useParams, Navigate, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import { useState } from 'react';
 import { Form, Button, Card, Row, Col } from 'react-bootstrap';
 
-import { getTableById } from '../redux/tablesSelectors';
+import { getTableById, getTablesLoading } from '../redux/tablesSelectors';
+import { updateTableRequest } from '../redux/tablesActions';
 
 const STATUSES = ['Free', 'Reserved', 'Busy', 'Cleaning'];
 
@@ -15,7 +16,11 @@ const clamp = (value, min, max) => {
 
 const TableDetails = () => {
   const { id } = useParams();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const table = useSelector((state) => getTableById(state, id));
+  const loading = useSelector(getTablesLoading);
 
   // hooki zawsze na górze – używamy bezpiecznych wartości startowych
   const [status, setStatus] = useState(table?.status ?? 'Free');
@@ -76,20 +81,22 @@ const TableDetails = () => {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    // tu NA RAZIE tylko podgląd – update na serwer damy w następnym kroku
-    const editedTable = {
-      id: table.id,
-      status,
-      peopleAmount,
-      maxPeopleAmount,
-      bill: status === 'Busy' ? bill : 0, // jak nie Busy, to rachunek = 0
-    };
-
-    console.log('Edited table (local only for now):', editedTable);
-    alert('Logika formularza działa, update na serwer dodamy w następnym commicie 🙂');
+  const editedTable = {
+    id: table.id,
+    status,
+    peopleAmount,
+    maxPeopleAmount,
+    bill: status === 'Busy' ? bill : 0,
   };
+
+  // 6. modyfikacja w magazynie + na serwerze
+  dispatch(updateTableRequest(editedTable));
+
+  // 7. po update wracamy na stronę główną
+  navigate('/');
+};
 
   return (
     <Card className="p-4">
@@ -150,8 +157,8 @@ const TableDetails = () => {
           </Form.Group>
         )}
 
-        <Button type="submit" variant="primary">
-          Update
+        <Button type="submit" variant="primary" disabled={loading}>
+          {loading ? 'Updating...' : 'Update'}
         </Button>
       </Form>
     </Card>
