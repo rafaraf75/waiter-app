@@ -2,7 +2,7 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { useState } from 'react';
-import { Form, Button, Card, Row, Col } from 'react-bootstrap';
+import { Form, Button, Card } from 'react-bootstrap';
 
 import { getTableById, getTablesLoading } from '../redux/tablesSelectors';
 import { updateTableRequest } from '../redux/tablesActions';
@@ -22,7 +22,7 @@ const TableDetails = () => {
   const table = useSelector((state) => getTableById(state, id));
   const loading = useSelector(getTablesLoading);
 
-  // hooki zawsze na górze – używamy bezpiecznych wartości startowych
+  // hooki zawsze na górze
   const [status, setStatus] = useState(table?.status ?? 'Free');
   const [peopleAmount, setPeopleAmount] = useState(table?.peopleAmount ?? 0);
   const [maxPeopleAmount, setMaxPeopleAmount] = useState(
@@ -30,7 +30,6 @@ const TableDetails = () => {
   );
   const [bill, setBill] = useState(table?.bill ?? 0);
 
-  // dopiero po hookach możemy zrobić warunkowy return
   if (!table) {
     return <Navigate to="/" replace />;
   }
@@ -39,13 +38,11 @@ const TableDetails = () => {
     const newStatus = e.target.value;
     setStatus(newStatus);
 
-    // 4. Cleaning / Free -> zerujemy people + bill
     if (newStatus === 'Free' || newStatus === 'Cleaning') {
       setPeopleAmount(0);
       setBill(0);
     }
 
-    // 3. Busy -> pokazujemy bill (pole i tak jest, ale ustawmy start na 0 jeśli było puste)
     if (newStatus === 'Busy' && bill < 0) {
       setBill(0);
     }
@@ -53,25 +50,16 @@ const TableDetails = () => {
 
   const handlePeopleChange = (e) => {
     let value = Number(e.target.value);
-    // 5. people 0–10
     value = clamp(value, 0, 10);
-    // 5. people ≤ maxPeople
-    if (value > maxPeopleAmount) {
-      value = maxPeopleAmount;
-    }
+    if (value > maxPeopleAmount) value = maxPeopleAmount;
     setPeopleAmount(value);
   };
 
   const handleMaxPeopleChange = (e) => {
     let value = Number(e.target.value);
-    // 5. maxPeople 0–10
     value = clamp(value, 0, 10);
     setMaxPeopleAmount(value);
-
-    // 5. jeśli max zmalał poniżej people -> obcinamy people
-    if (peopleAmount > value) {
-      setPeopleAmount(value);
-    }
+    if (peopleAmount > value) setPeopleAmount(value);
   };
 
   const handleBillChange = (e) => {
@@ -81,87 +69,88 @@ const TableDetails = () => {
   };
 
   const handleSubmit = (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const editedTable = {
-    id: table.id,
-    status,
-    peopleAmount,
-    maxPeopleAmount,
-    bill: status === 'Busy' ? bill : 0,
+    const editedTable = {
+      id: table.id,
+      status,
+      peopleAmount,
+      maxPeopleAmount,
+      bill: status === 'Busy' ? bill : 0,
+    };
+
+    dispatch(updateTableRequest(editedTable));
+    navigate('/');
   };
 
-  // 6. modyfikacja w magazynie + na serwerze
-  dispatch(updateTableRequest(editedTable));
-
-  // 7. po update wracamy na stronę główną
-  navigate('/');
-};
-
   return (
-    <Card className="p-4">
-      <h1 className="mb-4">Table {table.id}</h1>
+    <div className="d-flex justify-content-center mt-4">
+      <Card className="p-4" style={{ maxWidth: '600px', width: '100%' }}>
+        <h1 className="mb-4">Table {table.id}</h1>
 
-      <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3">
-          <Form.Label>Status</Form.Label>
-          <Form.Select value={status} onChange={handleStatusChange}>
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </Form.Select>
-        </Form.Group>
+        <Form onSubmit={handleSubmit}>
+          {/* STATUS */}
+          <Form.Group className="mb-3">
+            <Form.Label className="fw-semibold small mb-1">Status</Form.Label>
+            <Form.Select size="sm" value={status} onChange={handleStatusChange}>
+              {STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
 
-        <Row className="mb-3">
-          <Col>
-            <Form.Group>
-              <Form.Label>People amount</Form.Label>
+          {/* PEOPLE */}
+          <Form.Group className="mb-3">
+            <Form.Label className="fw-semibold small mb-1">People</Form.Label>
+            <div className="d-flex align-items-center gap-2">
               <Form.Control
                 type="number"
+                size="sm"
                 min={0}
                 max={10}
                 value={peopleAmount}
                 onChange={handlePeopleChange}
+                style={{ maxWidth: '70px' }}
               />
-              <Form.Text muted>
-                {peopleAmount} / {maxPeopleAmount}
-              </Form.Text>
-            </Form.Group>
-          </Col>
-
-          <Col>
-            <Form.Group>
-              <Form.Label>Max people amount</Form.Label>
+              <span>/</span>
               <Form.Control
                 type="number"
+                size="sm"
                 min={0}
                 max={10}
                 value={maxPeopleAmount}
                 onChange={handleMaxPeopleChange}
+                style={{ maxWidth: '70px' }}
               />
-            </Form.Group>
-          </Col>
-        </Row>
-
-        {status === 'Busy' && (
-          <Form.Group className="mb-3">
-            <Form.Label>Bill</Form.Label>
-            <Form.Control
-              type="number"
-              min={0}
-              value={bill}
-              onChange={handleBillChange}
-            />
+            </div>
           </Form.Group>
-        )}
 
-        <Button type="submit" variant="primary" disabled={loading}>
-          {loading ? 'Updating...' : 'Update'}
-        </Button>
-      </Form>
-    </Card>
+          {/* BILL */}
+          {status === 'Busy' && (
+            <Form.Group className="mb-3">
+              <Form.Label className="fw-semibold small mb-1">Bill</Form.Label>
+              <div className="d-flex align-items-center gap-2">
+                <span>$</span>
+                <Form.Control
+                  type="number"
+                  size="sm"
+                  min={0}
+                  value={bill}
+                  onChange={handleBillChange}
+                  style={{ maxWidth: '100px' }}
+                />
+              </div>
+            </Form.Group>
+          )}
+
+          <Button type="submit" variant="primary" size="sm" disabled={loading}>
+            {loading ? 'Updating...' : 'Update'}
+          </Button>
+        </Form>
+      </Card>
+    </div>
   );
 };
 
