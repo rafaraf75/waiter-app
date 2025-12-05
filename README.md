@@ -87,6 +87,7 @@ export const API_URL =
   process.env.NODE_ENV === 'production'
     ? '/api'
     : 'http://localhost:3131/api';
+```
 w trybie development (yarn start) – aplikacja korzysta z http://localhost:3131/api,
 
 w trybie production (yarn build + node server.mjs) – API_URL ma wartość /api
@@ -94,8 +95,7 @@ w trybie production (yarn build + node server.mjs) – API_URL ma wartość /api
 
 Backend oparty jest na JSON-server i pliku z danymi:
 
-json
-Skopiuj kod
+```json
 // public/db/app.json
 {
   "tables": [
@@ -109,19 +109,20 @@ Skopiuj kod
     // ...
   ]
 }
+```
 🚀 Uruchamianie projektu
 1. Instalacja zależności
-bash
-Skopiuj kod
+```bash
 yarn
+```
 (albo npm install, jeśli ktoś woli npm).
 
 2. Tryb developerski (zalecany do pracy lokalnej)
 Aplikacja React + JSON-server uruchamiane równolegle:
 
-bash
-Skopiuj kod
+```bash
 yarn start
+```
 React: http://localhost:3000
 
 API (JSON-server): http://localhost:3131/api/tables
@@ -131,14 +132,14 @@ W tym trybie aplikacja korzysta z API_URL = http://localhost:3131/api.
 3. Tryb produkcyjny (build + jeden serwer)
 Najpierw zbuduj aplikację:
 
-bash
-Skopiuj kod
+```bash
 yarn build
+```
 Następnie uruchom serwer produkcyjny:
 
-bash
-Skopiuj kod
+```bash
 node server.mjs
+```
 Serwer:
 
 serwuje build Reacta z folderu build,
