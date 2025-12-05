@@ -82,7 +82,6 @@ Zgodnie z założeniami zadania:
 Adres API jest konfigurowany w pliku:
 
 ```js
-// src/config.js
 export const API_URL =
   process.env.NODE_ENV === 'production'
     ? '/api'
@@ -96,7 +95,6 @@ w trybie production (yarn build + node server.mjs) – API_URL ma wartość /api
 Backend oparty jest na JSON-server i pliku z danymi:
 
 ```json
-// public/db/app.json
 {
   "tables": [
     {
@@ -106,7 +104,6 @@ Backend oparty jest na JSON-server i pliku z danymi:
       "maxPeopleAmount": 4,
       "bill": 0
     }
-    // ...
   ]
 }
 ```
