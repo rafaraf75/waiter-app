@@ -1,25 +1,24 @@
-import { Container, Navbar } from 'react-bootstrap';
+import { Container } from 'react-bootstrap';
 import { Routes, Route, Navigate } from 'react-router-dom';
+
 import Home from './pages/Home';
 import TableDetails from './pages/TableDetails';
+import Header from './components/views/Header';
+import Footer from './components/views/Footer';
 
 function App() {
   return (
-    <>
-      <Navbar bg="dark" variant="dark" className="mb-4">
-        <Container>
-          <Navbar.Brand href="/">Waiter App</Navbar.Brand>
-        </Container>
-      </Navbar>
+    <Container>
+      <Header />
 
-      <Container>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/table/:id" element={<TableDetails />} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </Container>
-    </>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/table/:id" element={<TableDetails />} />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+
+      <Footer />
+    </Container>
   );
 }
 
